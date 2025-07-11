@@ -33,7 +33,7 @@ const CustomerForm = ({ totalAmount, paymentType, onClose, darkMode, onSubmit })
     }
 
     try {
-      await axios.post("https://manage-backend-production-048c.up.railway.app/api/customers", customerData, {
+      await axios.post("https://raxwo-manage-backend-production.up.railway.app/api/customers", customerData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

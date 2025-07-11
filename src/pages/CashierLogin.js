@@ -20,7 +20,7 @@ const UserLogin = ({ darkMode }) => {
     setError("");
 
     try {
-      const res = await axios.post("https://manage-backend-production-048c.up.railway.app/api/auth/login", {
+      const res = await axios.post("https://raxwo-manage-backend-production.up.railway.app/api/auth/login", {
         email: formData.email,
         password: formData.password,
       });

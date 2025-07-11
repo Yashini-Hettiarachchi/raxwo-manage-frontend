@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import '../Products.css';
 import { useNavigate, Link } from 'react-router-dom';
 
-const API_URL = 'https://manage-backend-production-048c.up.railway.app/api/suppliers';
-const PRODUCTS_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/products';
+const API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/suppliers';
+const PRODUCTS_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/products';
 
 const CartForm = ({ supplier, item, closeModal, darkMode, refreshProducts }) => {
   const [grn, setGrn] = useState('');

@@ -5,7 +5,7 @@ import { faPlus, faFile, faFilePdf, faFileExcel, faSearch, faTimes } from '@fort
 
 import "../styles/CashierAdd.css";
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/cashiers";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/cashiers";
 
 const CashierAdd = ({ isOpen, onClose, refreshCashiers, darkMode }) => {
   const [cashier, setCashier] = useState({

@@ -10,7 +10,7 @@ import usericon from '../icon/employee.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faFile, faFilePdf, faFileExcel, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 
-const API_URL = 'https://manage-backend-production-048c.up.railway.app/api/auth/users';
+const API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/auth/users';
 
 const UserList = ({ darkMode }) => {
   const [users, setUsers] = useState([]);

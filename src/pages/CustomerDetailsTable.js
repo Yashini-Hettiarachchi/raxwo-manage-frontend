@@ -4,7 +4,7 @@ import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 import '../styles/CustomerDetailsTable.css';
 import deleteIcon from '../icon/delete.png';
 
-const API_URL = 'https://manage-backend-production-048c.up.railway.app/api/payments';
+const API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/payments';
 
 const CustomerDetailsTable = ({ darkMode }) => {
   const [payments, setPayments] = useState([]);

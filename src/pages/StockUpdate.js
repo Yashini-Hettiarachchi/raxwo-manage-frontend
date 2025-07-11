@@ -1,8 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/StockUpdate.css"; // Ensure you have dark mode styles
+import EditProduct from '../EditProduct';
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/products";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/products";
+
+// Helper to compute stock from changeHistory
+function computeStockFromHistory(product) {
+  if (!product || !product.changeHistory || !Array.isArray(product.changeHistory) || product.changeHistory.length === 0) {
+    return product?.stock || 0;
+  }
+  // Sort logs by changedAt ascending (oldest first)
+  const stockLogs = product.changeHistory
+    .filter(log => log.field === 'stock' && typeof log.newValue === 'number')
+    .sort((a, b) => new Date(a.changedAt) - new Date(b.changedAt));
+  if (stockLogs.length === 0) return product.stock;
+  let stock = typeof stockLogs[0].oldValue === 'number' ? stockLogs[0].oldValue : product.stock;
+  stockLogs.forEach(log => {
+    stock = log.newValue;
+  });
+  return stock;
+}
 
 const StockUpdate = ({ darkMode }) => {
   const navigate = useNavigate();
@@ -115,6 +133,7 @@ const StockUpdate = ({ darkMode }) => {
       
       if (isEditing && editProduct) {
         // Update existing product
+        const computedStock = computeStockFromHistory(product);
         response = await fetch(`${API_URL}/${editProduct._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -124,7 +143,7 @@ const StockUpdate = ({ darkMode }) => {
             category: category,
             buyingPrice: Number(newBuyingPrice),
             sellingPrice: Number(newSellingPrice),
-            stock: product.stock + Number(newStock), // Add new stock to existing stock
+            stock: computedStock + Number(newStock), // Add new stock to computed stock
             supplierName: supplierName,
           }),
         });
@@ -150,13 +169,25 @@ const StockUpdate = ({ darkMode }) => {
       }
 
       setSuccess(isEditing ? "✅ Stock record updated successfully!" : "✅ Stock updated successfully!");
-      setTimeout(() => navigate("/StockUpdateList"), 1500);
+      setTimeout(() => navigate("/StockUpdateList", { state: { refresh: true } }), 1500);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  if (isEditing && editProduct) {
+    // Use EditProduct form for editing
+    return (
+      <EditProduct
+        product={editProduct}
+        darkMode={darkMode}
+        closeModal={() => navigate('/StockUpdateList', { state: { refresh: true } })}
+        showGRN={true}
+      />
+    );
+  }
 
   return (
     <div className={`stock-update-container ${darkMode ? 'dark' : ''}`}>
@@ -200,7 +231,7 @@ const StockUpdate = ({ darkMode }) => {
                 <div className={`stock-display-item ${darkMode ? 'dark' : ''}`}>
                   <label className={`stock-label ${darkMode ? 'dark' : ''}`}>CURRENT STOCK:</label>
                   <span className={`stock-value current-stock ${darkMode ? 'dark' : ''}`}>
-                    {product?.stock || 0}
+                    {computeStockFromHistory(product)}
                   </span>
                 </div>
                 
@@ -216,7 +247,7 @@ const StockUpdate = ({ darkMode }) => {
                 <div className={`stock-display-item ${darkMode ? 'dark' : ''}`}>
                   <label className={`stock-label ${darkMode ? 'dark' : ''}`}>NEW STOCK AFTER UPDATE:</label>
                   <span className={`stock-value new-stock ${darkMode ? 'dark' : ''}`}>
-                    {(product?.stock || 0) + (Number(newStock) || 0)}
+                    {computeStockFromHistory(product) + (Number(newStock) || 0)}
                   </span>
                 </div>
               </div>

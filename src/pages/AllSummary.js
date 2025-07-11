@@ -4,12 +4,12 @@ import * as XLSX from 'xlsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileExcel } from '@fortawesome/free-solid-svg-icons';
 
-const PRODUCTS_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/products';
-const SUPPLIERS_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/suppliers';
-const PRODUCTS_REPAIR_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/productsRepair';
-const SALARIES_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/salaries';
-const MAINTENANCE_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/maintenance';
-const EXTRA_INCOME_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/extra-income';
+const PRODUCTS_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/products';
+const SUPPLIERS_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/suppliers';
+const PRODUCTS_REPAIR_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/productsRepair';
+const SALARIES_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/salaries';
+const MAINTENANCE_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/maintenance';
+const EXTRA_INCOME_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/extra-income';
 
 const AllSummary = ({ darkMode }) => {
   // State for expenses

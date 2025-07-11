@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import '../styles/MaintenanceEdit.css';
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/maintenance";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/maintenance";
 
 const MaintenanceEdit = ({ record, onClose, onUpdate, darkMode }) => {
   const [editedRecord, setEditedRecord] = useState({ ...record });

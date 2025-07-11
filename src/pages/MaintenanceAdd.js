@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import '../styles/MaintenanceAdd.css';
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/maintenance";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/maintenance";
 
 const getCurrentDate = () => new Date().toISOString().split("T")[0];
 const getCurrentTime = () => new Date().toLocaleTimeString();

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/CashierEdit.css"; // Create and use a new CSS file for CashierEdit
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/cashiers";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/cashiers";
 
 const CashierEdit = ({ isOpen, onClose, cashier, refreshCashiers, darkMode }) => {
   const [updatedCashier, setUpdatedCashier] = useState(cashier);

@@ -11,7 +11,7 @@ import editicon from "../icon/edit.png";
 import deleteicon from "../icon/delete.png";
 import "../styles/ExtraIncome.css";
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/extra-income";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/extra-income";
 
 const ExtraIncome = ({ darkMode }) => {
   // State for form inputs

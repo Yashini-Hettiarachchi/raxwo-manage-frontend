@@ -4,12 +4,12 @@ import '../styles/PaymentTable.css';
 import '../Products.css';
 import { FaPlusCircle, FaEdit, FaTrashAlt, FaFilter, FaRedo } from 'react-icons/fa';
 
-const PRODUCT_API = 'https://manage-backend-production-048c.up.railway.app/api/products';
-const SUPPLIER_API = 'https://manage-backend-production-048c.up.railway.app/api/suppliers';
-const JOB_API = 'https://manage-backend-production-048c.up.railway.app/api/productsRepair';
+const PRODUCT_API = 'https://raxwo-manage-backend-production.up.railway.app/api/products';
+const SUPPLIER_API = 'https://raxwo-manage-backend-production.up.railway.app/api/suppliers';
+const JOB_API = 'https://raxwo-manage-backend-production.up.railway.app/api/productsRepair';
 // Add API endpoints for payment and maintenance
-const PAYMENT_API = 'https://manage-backend-production-048c.up.railway.app/api/payments';
-const MAINTENANCE_API = 'https://manage-backend-production-048c.up.railway.app/api/maintenance';
+const PAYMENT_API = 'https://raxwo-manage-backend-production.up.railway.app/api/payments';
+const MAINTENANCE_API = 'https://raxwo-manage-backend-production.up.railway.app/api/maintenance';
 
 // 1. Update ENTITY_LABELS to include all Navbar pages
 const ENTITY_LABELS = {
@@ -83,54 +83,24 @@ const formatValue = value => {
   return value.toString();
 };
 
+// Helper to get user role by username
+const getUserRole = (users, username) => {
+  const user = users.find(u => u.username === username);
+  return user ? user.role : 'N/A';
+};
+
 const LogHistoryPage = ({ darkMode }) => {
   const [logs, setLogs] = useState([]);
-  const [filter, setFilter] = useState('job');
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(false);
+  const [suppliers, setSuppliers] = useState([]);
   const [jobs, setJobs] = useState([]);
-  const [jobsLoading, setJobsLoading] = useState(false);
-  const [excelUploads, setExcelUploads] = useState([]);
-  const [excelUploadsLoading, setExcelUploadsLoading] = useState(false);
-  // New filter states
-  const [usernameFilter, setUsernameFilter] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-
-  // 3. Update filteredLogs logic to support new filters
-  const filteredLogs = logs.filter(log => {
-    let matchesType = filter === 'all' ||
-      (filter === 'dashboard' && log.entityType === 'dashboard') ||
-      (filter === 'productsRepair' && log.entityType === 'productsRepair') ||
-      (filter === 'product' && log.entityType === 'product') ||
-      (filter === 'stockUpdate' && log.entityType === 'stockUpdate') ||
-      (filter === 'supplier' && log.entityType === 'supplier') ||
-      (filter === 'cashier' && log.entityType === 'cashier') ||
-      (filter === 'user' && log.entityType === 'user') ||
-      (filter === 'salary' && log.entityType === 'salary') ||
-      (filter === 'payment' && log.entityType === 'payment') ||
-      (filter === 'paymentRecord' && log.entityType === 'paymentRecord') ||
-      (filter === 'extraIncome' && log.entityType === 'extraIncome') ||
-      (filter === 'maintenance' && log.entityType === 'maintenance') ||
-      (filter === 'attendance' && log.entityType === 'attendance') ||
-      (filter === 'attendanceRecord' && log.entityType === 'attendanceRecord') ||
-      (filter === 'shopSettings' && log.entityType === 'shopSettings') ||
-      (filter === 'summary' && log.entityType === 'summary');
-    if (!matchesType) return false;
-    // Username filter
-    if (usernameFilter && (!log.changedBy || !log.changedBy.toLowerCase().includes(usernameFilter.toLowerCase()))) return false;
-    // Date filter
-    if (dateFrom) {
-      const logDate = new Date(log.changedAt);
-      if (logDate < new Date(dateFrom)) return false;
-    }
-    if (dateTo) {
-      const logDate = new Date(log.changedAt);
-      if (logDate > new Date(dateTo)) return false;
-    }
-    return true;
-  });
+  const [payments, setPayments] = useState([]);
+  const [maintenance, setMaintenance] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [salaries, setSalaries] = useState([]);
+  const [extraIncome, setExtraIncome] = useState([]);
+  // Remove grnExpenses state
 
   // Restrict access to admin only
   const isAdmin = (localStorage.getItem('role') || '').trim().toLowerCase() === 'admin';
@@ -146,474 +116,226 @@ const LogHistoryPage = ({ darkMode }) => {
     content = (
       <div className={`product-list-container${darkMode ? ' dark' : ''}`}>
         <div className="header-section">
-          <h2 className={`product-list-title${darkMode ? ' dark' : ''}`}>Log History</h2>
+          <h2 className={`product-list-title${darkMode ? ' dark' : ''}`}>Activity Log (All Data)</h2>
         </div>
-        {/* Filter Controls */}
-        <div className="log-filters log-filters-card" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center', background: darkMode ? '#1e293b' : '#f8fafc', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: '1rem 1.5rem', border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
-          <FaFilter style={{ marginRight: 8, color: darkMode ? '#60a5fa' : '#2563eb' }} />
-          <input
-            type="text"
-            placeholder="Filter by username..."
-            value={usernameFilter}
-            onChange={e => setUsernameFilter(e.target.value)}
-            style={{ minWidth: 180, borderRadius: 6, border: '1px solid #cbd5e1', padding: '6px 10px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#e2e8f0' : '#1e293b' }}
-          />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            From:
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={e => setDateFrom(e.target.value)}
-              style={{ minWidth: 120, borderRadius: 6, border: '1px solid #cbd5e1', padding: '6px 10px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#e2e8f0' : '#1e293b' }}
-            />
-          </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            To:
-            <input
-              type="date"
-              value={dateTo}
-              onChange={e => setDateTo(e.target.value)}
-              style={{ minWidth: 120, borderRadius: 6, border: '1px solid #cbd5e1', padding: '6px 10px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#e2e8f0' : '#1e293b' }}
-            />
-          </label>
-          <button type="button" onClick={() => { setUsernameFilter(''); setDateFrom(''); setDateTo(''); }} style={{ marginLeft: 8, borderRadius: 6, border: 'none', background: darkMode ? '#334155' : '#e2e8f0', color: darkMode ? '#60a5fa' : '#2563eb', padding: '6px 14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}><FaRedo /> Reset</button>
-        </div>
-        <div className="search-action-container">
-          <div className={`search-bar-container${darkMode ? ' dark' : ''}`} style={{ maxWidth: 300 }}>
-            <select
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
-              className="product-list-search-bar"
-              style={{ minWidth: 120 }}
-            >
-              <option value="all">All Pages</option>
-              <option value="dashboard">Dashboard</option>
-              <option value="productsRepair">Repair Jobs</option>
-              <option value="product">Products</option>
-              <option value="stockUpdate">Stock Management</option>
-              <option value="supplier">Suppliers</option>
-              <option value="cashier">Staff</option>
-              <option value="user">User Accounts</option>
-              <option value="salary">Payroll</option>
-              <option value="payment">New Payment</option>
-              <option value="paymentRecord">Payment Records</option>
-              <option value="extraIncome">Other Income</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="attendance">Attendance</option>
-              <option value="attendanceRecord">Attendance Records</option>
-              <option value="shopSettings">Billing Settings</option>
-              <option value="summary">Summary Reports</option>
-            </select>
-          </div>
-        </div>
-        {filter === 'all' ? (
-          loading ? (
+        {loading ? (
             <div className="loading">Loading...</div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className={`product-table${darkMode ? ' dark' : ''}`} style={{ minWidth: 1000 }}>
-                <thead>
-                  <tr>
-                    <th>Entity</th>
-                    <th>Entity Name</th>
-                    <th>Field</th>
-                    <th>Change Type</th>
-                    <th>Date/Time</th>
-                    <th>Old Value</th>
-                    <th>New Value</th>
-                    <th>Changed By</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: '2rem 0', color: darkMode ? '#60a5fa' : '#2563eb', fontWeight: 500, fontSize: 18 }}>
-                        <span role="img" aria-label="no logs" style={{ fontSize: 32, marginBottom: 8, display: 'block' }}>📄</span>
-                        No logs found. Try adjusting your filters.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredLogs.map((log, idx) => (
-                      <tr key={idx} style={{ background: idx % 2 === 0 ? (darkMode ? '#1e293b' : '#f8fafc') : 'transparent', transition: 'background 0.2s' }}>
-                        <td>{ENTITY_LABELS[log.entityType] || log.entityType}</td>
-                        <td title={log.entityName} style={{ maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.entityName}</td>
-                        <td title={log.field} style={{ maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.field}</td>
-                        <td>
-                          {log.changeType === 'create' && <span className="badge badge-create"><FaPlusCircle style={{ color: '#22c55e', marginRight: 4 }} />Create</span>}
-                          {log.changeType === 'update' && <span className="badge badge-update"><FaEdit style={{ color: '#3b82f6', marginRight: 4 }} />Update</span>}
-                          {log.changeType === 'delete' && <span className="badge badge-delete"><FaTrashAlt style={{ color: '#ef4444', marginRight: 4 }} />Delete</span>}
-                          {!(log.changeType === 'create' || log.changeType === 'update' || log.changeType === 'delete') && <span className="badge badge-other">{log.changeType}</span>}
-                        </td>
-                        <td>{new Date(log.changedAt).toLocaleString()}</td>
-                        <td title={formatValue(log.oldValue)} style={{ maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatValue(log.oldValue)}</td>
-                        <td title={formatValue(log.newValue)} style={{ maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatValue(log.newValue)}</td>
-                        <td title={log.changedBy}>{log.changedBy || 'N/A'}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : filter === 'payment' ? (
-          loading ? (
-            <div className="loading">Loading...</div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className={`product-table${darkMode ? ' dark' : ''}`} style={{ minWidth: 900 }}>
-                <thead>
-                  <tr>
-                    <th>Invoice No</th>
-                    <th>Customer</th>
-                    <th>Cashier</th>
-                    <th>Payment Method</th>
-                    <th>Total Amount</th>
-                    <th>Date/Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.filter(log => log.entityType === 'payment').length === 0 ? (
-                    <tr><td colSpan={6}>No payment logs found.</td></tr>
-                  ) : (
-                    filteredLogs.filter(log => log.entityType === 'payment').map((log, idx) => (
-                      <tr key={idx}>
-                        <td>{log.invoiceNumber}</td>
-                        <td>{log.customerName || '-'}</td>
-                        <td>{log.changedBy || '-'}</td>
-                        <td>{log.paymentMethod}</td>
-                        <td>{log.totalAmount}</td>
-                        <td>{log.changedAt ? new Date(log.changedAt).toLocaleString() : '-'}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : filter === 'maintenance' ? (
-          loading ? (
-            <div className="loading">Loading...</div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className={`product-table${darkMode ? ' dark' : ''}`} style={{ minWidth: 900 }}>
-                <thead>
-                  <tr>
-                    <th>Service Type</th>
-                    <th>Price</th>
-                    <th>Date/Time</th>
-                    <th>Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.filter(log => log.entityType === 'maintenance').length === 0 ? (
-                    <tr><td colSpan={4}>No maintenance logs found.</td></tr>
-                  ) : (
-                    filteredLogs.filter(log => log.entityType === 'maintenance').map((log, idx) => (
-                      <tr key={idx}>
-                        <td>{log.entityName}</td>
-                        <td>{log.newValue}</td>
-                        <td>{log.changedAt}</td>
-                        <td>{log.remarks || '-'}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : filter === 'job' ? (
-          loading ? (
-            <div className="loading">Loading...</div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className={`product-table${darkMode ? ' dark' : ''}`} style={{ minWidth: 1000 }}>
-                <thead>
-                  <tr>
-                    <th>Entity</th>
-                    <th>Entity Name</th>
-                    <th>Field</th>
-                    <th>Change Type</th>
-                    <th>Date/Time</th>
-                    <th>Old Value</th>
-                    <th>New Value</th>
-                    <th>Changed By</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.filter(log => log.entityType === 'job').length === 0 ? (
-                    <tr><td colSpan={8}>No logs found.</td></tr>
-                  ) : (
-                    filteredLogs.filter(log => log.entityType === 'job').map((log, idx) => (
-                      <tr key={idx}>
-                        <td>{ENTITY_LABELS[log.entityType]}</td>
-                        <td>{log.entityName}</td>
-                        <td>{log.field}</td>
-                        <td>{log.changeType === 'delete' ? 'Deleted' : log.changeType}</td>
-                        <td>{new Date(log.changedAt).toLocaleString()}</td>
-                        <td>{formatValue(log.oldValue)}</td>
-                        <td>{formatValue(log.newValue)}</td>
-                        <td>{log.changedBy || 'N/A'}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : filter === 'cart' ? (
-          loading ? (
-            <div className="loading">Loading...</div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className={`product-table${darkMode ? ' dark' : ''}`} style={{ minWidth: 900 }}>
-                <thead>
-                  <tr>
-                    <th>Supplier</th>
-                    <th>Item Name</th>
-                    <th>Action</th>
-                    <th>Quantity</th>
-                    <th>Added By</th>
-                    <th>Date/Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.filter(log =>
-                    (log.entityType === 'supplier' && log.changeType === 'cart') ||
-                    (log.entityType === 'product' && log.changeType === 'addExpense')
-                  ).length === 0 ? (
-                    <tr><td colSpan={6}>No add expenses found.</td></tr>
-                  ) : (
-                    filteredLogs.filter(log =>
-                      (log.entityType === 'supplier' && log.changeType === 'cart') ||
-                      (log.entityType === 'product' && log.changeType === 'addExpense')
-                    ).map((log, idx) => (
-                      <tr key={idx}>
-                        <td>{log.entityName}</td>
-                        <td>{log.newValue?.itemName || log.itemName || 'N/A'}</td>
-                        <td>{log.field === 'cart-add' ? 'Add' : (log.field === 'cart-update' ? 'Update' : (log.changeType === 'addExpense' ? 'Add Stock (Excel)' : log.field))}</td>
-                        <td>{log.newValue?.quantity ?? log.newValue ?? 'N/A'}</td>
-                        <td>{log.changedBy || 'N/A'}</td>
-                        <td>{log.changedAt ? new Date(log.changedAt).toLocaleString() : 'N/A'}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : filter === 'stock' ? (
-          loading ? (
-            <div className="loading">Loading...</div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className={`product-table${darkMode ? ' dark' : ''}`} style={{ minWidth: 800 }}>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Page</th>
-                    <th>Old Value</th>
-                    <th>New Value</th>
-                    <th>Edited By</th>
-                    <th>Date/Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.filter(log => log.entityType === 'product' && log.field === 'stock' && (log.changeType === 'update' || log.changeType === 'delete')).length === 0 ? (
-                    <tr><td colSpan={6}>No logs found.</td></tr>
-                  ) : (
-                    filteredLogs.filter(log => log.entityType === 'product' && log.field === 'stock' && (log.changeType === 'update' || log.changeType === 'delete'))
-                      .map((log, idx) => {
-                        // Determine the page source
-                        let page = 'unknown';
-                        if (log.changedBy && typeof log.changedBy === 'string') {
-                          const changedByLower = log.changedBy.toLowerCase();
-                          if (changedByLower.includes('repair') || changedByLower.includes('job')) {
-                            page = 'job list';
-                          } else if (changedByLower.includes('admin') || changedByLower.includes('stock') || changedByLower.includes('update')) {
-                            page = 'product stock';
-                          } else if (changedByLower.includes('product')) {
-                            page = 'product';
-                          } else if (changedByLower.includes('system') || changedByLower.includes('excel')) {
-                            page = 'stock update';
-                          }
-                        }
-                        // Heuristic fallback
-                        if (page === 'unknown' && log.field === 'stock') {
-                          if (typeof log.oldValue === 'number' && typeof log.newValue === 'number') {
-                            if (log.oldValue > log.newValue) {
-                              page = 'job list';
-                            } else if (log.oldValue < log.newValue) {
-                              page = 'stock update';
-                            }
-                          }
-                        }
-                        return (
-                          <tr key={idx}>
-                            <td>{log.entityName || log.productName || '-'}</td>
-                            <td>{page}</td>
-                            <td>{log.oldValue}</td>
-                            <td>{log.newValue}</td>
-                            <td>{log.changedBy}</td>
-                            <td>{log.changedAt ? new Date(log.changedAt).toLocaleString() : '-'}</td>
-                          </tr>
-                        );
-                      })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : filter === 'selectProductsForRepair' ? (
-          loading ? (
-            <div className="loading">Loading...</div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className={`product-table${darkMode ? ' dark' : ''}`} style={{ minWidth: 800 }}>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Old Stock</th>
-                    <th>New Stock</th>
-                    <th>Edited By</th>
-                    <th>Date/Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.filter(log => log.entityType === 'product' && log.field === 'stock' && (log.changeType === 'update' || log.changeType === 'delete') && (() => {
-                    // Determine if this log is from Job List (SELECT PRODUCTS FOR REPAIR)
-                    let page = 'Unknown';
-                    if (log.changedBy && typeof log.changedBy === 'string') {
-                      const changedByLower = log.changedBy.toLowerCase();
-                      if (changedByLower.includes('repair') || changedByLower.includes('job')) {
-                        page = 'Job List';
-                      }
-                    }
-                    if (page === 'Unknown' && log.field === 'stock') {
-                      if (typeof log.oldValue === 'number' && typeof log.newValue === 'number') {
-                        if (log.oldValue > log.newValue) {
-                          page = 'Job List';
-                        }
-                      }
-                    }
-                    return page === 'Job List';
-                  })()).length === 0 ? (
-                    <tr><td colSpan={5}>No logs found.</td></tr>
-                  ) : (
-                    filteredLogs.filter(log => log.entityType === 'product' && log.field === 'stock' && (log.changeType === 'update' || log.changeType === 'delete') && (() => {
-                      let page = 'Unknown';
-                      if (log.changedBy && typeof log.changedBy === 'string') {
-                        const changedByLower = log.changedBy.toLowerCase();
-                        if (changedByLower.includes('repair') || changedByLower.includes('job')) {
-                          page = 'Job List';
-                        }
-                      }
-                      if (page === 'Unknown' && log.field === 'stock') {
-                        if (typeof log.oldValue === 'number' && typeof log.newValue === 'number') {
-                          if (log.oldValue > log.newValue) {
-                            page = 'Job List';
-                          }
-                        }
-                      }
-                      return page === 'Job List';
-                    })()).map((log, idx) => (
-                      <tr key={idx}>
-                        <td>{log.entityName || log.productName || '-'}</td>
-                        <td>{log.oldValue}</td>
-                        <td>{log.newValue}</td>
-                        <td>{log.changedBy}</td>
-                        <td>{log.changedAt ? new Date(log.changedAt).toLocaleString() : '-'}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : filter === 'excelUploads' ? (
-          excelUploadsLoading ? (
-            <div className="loading">Loading...</div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className={`product-table${darkMode ? ' dark' : ''}`} style={{ minWidth: 900 }}>
-                <thead>
-                  <tr>
-                    <th>Filename</th>
-                    <th>Uploaded By</th>
-                    <th>Products Processed</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {excelUploads.length === 0 ? (
-                    <tr><td colSpan={4}>No Excel uploads found.</td></tr>
-                  ) : (
-                    excelUploads.map((upload, idx) => (
-                      <tr key={idx}>
-                        <td>{upload.filename || 'N/A'}</td>
-                        <td>{upload.uploadedBy || 'N/A'}</td>
-                        <td>{upload.products ? upload.products.length : 0}</td>
-                        <td>
-                          <details>
-                            <summary>View Details</summary>
-                            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
-                              {upload.products && upload.products.length > 0 ? (
-                                <table style={{ width: '100%', fontSize: '12px' }}>
-                                  <thead>
-                                    <tr>
-                                      <th>GRN</th>
-                                      <th>Item Name</th>
-                                      <th>Action</th>
-                                      <th>Created At</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {upload.products.map((product, productIdx) => {
-                                      // Find the corresponding product from the products list to get createdAt
-                                      const productDetails = products.find(p => p.itemName === product.itemName || p.itemCode === product.itemCode);
-                                      return (
-                                        <tr key={productIdx}>
-                                          <td>{product.itemCode || 'N/A'}</td>
-                                          <td>{product.itemName || 'N/A'}</td>
-                                          <td>{product.action || 'N/A'}</td>
-                                          <td>
-                                            {productDetails && productDetails.createdAt 
-                                              ? new Date(productDetails.createdAt).toLocaleString() 
-                                              : 'N/A'
-                                            }
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                  </tbody>
-                                </table>
-                              ) : (
-                                <p>No product details available</p>
-                              )}
-                            </div>
-                          </details>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : null}
+          <>
+            {/* Products Section */}
+            <section style={{ marginBottom: 32 }}>
+              <h3>All Products</h3>
+              {products.length === 0 ? <p>No products found.</p> : (
+                <ul style={{ paddingLeft: 0 }}>
+                  {products.map(product => (
+                    <li key={product._id || product.itemCode} style={{ marginBottom: 8, listStyle: 'none', borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                      <strong>{product.itemName}</strong> (Code: {product.itemCode})<br/>
+                      Category: {product.category} | Stock: {product.stock} | Buying: Rs.{product.buyingPrice} | Selling: Rs.{product.sellingPrice} | Supplier: {product.supplierName}<br/>
+                      <div style={{ color: '#888', fontSize: 13, marginTop: 4 }}>
+                        <strong>Change History:</strong>
+                        {Array.isArray(product.changeHistory) && product.changeHistory.length > 0 ? (
+                          <ul style={{ margin: 0, paddingLeft: 16 }}>
+                            {product.changeHistory.map((log, idx) => (
+                              <li key={idx}>
+                                <span style={{ fontWeight: 500 }}>{log.changeType?.toUpperCase() || 'ACTION'}</span> by <span style={{ fontWeight: 500 }}>{log.changedBy || 'N/A'}</span> (<span style={{ fontStyle: 'italic' }}>{getUserRole(users, log.changedBy)}</span>) on {log.changedAt ? new Date(log.changedAt).toLocaleString() : 'N/A'}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div style={{ marginLeft: 8 }}>No change history.</div>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {/* Suppliers Section */}
+            <section style={{ marginBottom: 32 }}>
+              <h3>All Suppliers</h3>
+              {suppliers.length === 0 ? <p>No suppliers found.</p> : (
+                <ul style={{ paddingLeft: 0 }}>
+                  {suppliers.map(supplier => (
+                    <li key={supplier._id || supplier.supplierName} style={{ marginBottom: 8, listStyle: 'none', borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                      <strong>{supplier.supplierName}</strong> ({supplier.businessName})<br/>
+                      Phone: {supplier.phoneNumber} | Address: {supplier.address} | Date: {supplier.date} {supplier.time}<br/>
+                      <div style={{ color: '#888', fontSize: 13, marginTop: 4 }}>
+                        <strong>Change History:</strong>
+                        {Array.isArray(supplier.changeHistory) && supplier.changeHistory.length > 0 ? (
+                          <ul style={{ margin: 0, paddingLeft: 16 }}>
+                            {supplier.changeHistory.map((log, idx) => (
+                              <li key={idx}>
+                                <span style={{ fontWeight: 500 }}>{log.changeType?.toUpperCase() || 'ACTION'}</span> by <span style={{ fontWeight: 500 }}>{log.changedBy || 'N/A'}</span> (<span style={{ fontStyle: 'italic' }}>{getUserRole(users, log.changedBy)}</span>) on {log.changedAt ? new Date(log.changedAt).toLocaleString() : 'N/A'}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div style={{ marginLeft: 8 }}>No change history.</div>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {/* Jobs Section */}
+            <section style={{ marginBottom: 32 }}>
+              <h3>All Repair Jobs</h3>
+              {jobs.length === 0 ? <p>No jobs found.</p> : (
+                <ul style={{ paddingLeft: 0 }}>
+                  {jobs.map(job => (
+                    <li key={job._id || job.repairInvoice} style={{ marginBottom: 8, listStyle: 'none', borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                      <strong>{job.repairInvoice}</strong> - {job.customerName}<br/>
+                      Device: {job.deviceType} | Serial: {job.serialNumber} | Status: {job.repairStatus} | Issue: {job.issueDescription}<br/>
+                      <div style={{ color: '#888', fontSize: 13, marginTop: 4 }}>
+                        <strong>Change History:</strong>
+                        {Array.isArray(job.changeHistory) && job.changeHistory.length > 0 ? (
+                          <ul style={{ margin: 0, paddingLeft: 16 }}>
+                            {job.changeHistory.map((log, idx) => (
+                              <li key={idx}>
+                                <span style={{ fontWeight: 500 }}>{log.changeType?.toUpperCase() || 'ACTION'}</span> by <span style={{ fontWeight: 500 }}>{log.changedBy || 'N/A'}</span> (<span style={{ fontStyle: 'italic' }}>{getUserRole(users, log.changedBy)}</span>) on {log.changedAt ? new Date(log.changedAt).toLocaleString() : 'N/A'}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div style={{ marginLeft: 8 }}>No change history.</div>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {/* Payments Section */}
+            <section style={{ marginBottom: 32 }}>
+              <h3>All Payments</h3>
+              {payments.length === 0 ? <p>No payments found.</p> : (
+                <ul style={{ paddingLeft: 0 }}>
+                  {payments.map(payment => (
+                    <li key={payment._id || payment.invoiceNumber} style={{ marginBottom: 8, listStyle: 'none', borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                      <strong>Invoice: {payment.invoiceNumber}</strong> | Customer: {payment.customerName} | Cashier: {payment.cashierName}<br/>
+                      Method: {payment.paymentMethod} | Total: Rs.{payment.totalAmount} | Date: {payment.createdAt || payment.date}<br/>
+                      <span style={{ color: '#888', fontSize: 13 }}>Added by: {payment.cashierName || payment.changedBy || 'N/A'}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {/* Maintenance Section */}
+            <section style={{ marginBottom: 32 }}>
+              <h3>All Maintenance</h3>
+              {maintenance.length === 0 ? <p>No maintenance records found.</p> : (
+                <ul style={{ paddingLeft: 0 }}>
+                  {maintenance.map(m => (
+                    <li key={m._id || m.serviceType+String(m.date)} style={{ marginBottom: 8, listStyle: 'none', borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                      <strong>{m.serviceType}</strong> | Price: Rs.{m.price} | Date: {m.date} {m.time}<br/>
+                      Remarks: {m.remarks}<br/>
+                      <span style={{ color: '#888', fontSize: 13 }}>Added by: {m.changedBy || 'N/A'}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {/* Users Section */}
+            <section style={{ marginBottom: 32 }}>
+              <h3>All Users</h3>
+              {users.length === 0 ? <p>No users found.</p> : (
+                <ul style={{ paddingLeft: 0 }}>
+                  {users.map(user => (
+                    <li key={user._id || user.username} style={{ marginBottom: 8, listStyle: 'none', borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                      <strong>{user.username}</strong> | Email: {user.email} | Phone: {user.phone} | Role: {user.role}<br/>
+                      <span style={{ color: '#888', fontSize: 13 }}>Added by: {user.username || 'N/A'}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {/* Salaries Section */}
+            <section style={{ marginBottom: 32 }}>
+              <h3>All Salaries</h3>
+              {salaries.length === 0 ? <p>No salary records found.</p> : (
+                <ul style={{ paddingLeft: 0 }}>
+                  {salaries.map(salary => (
+                    <li key={salary._id || salary.employeeId} style={{ marginBottom: 8, listStyle: 'none', borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                      <strong>{salary.employeeName}</strong> (ID: {salary.employeeId}) | Advance: Rs.{salary.advance} | Date: {salary.date} | Remarks: {salary.remarks}<br/>
+                      <span style={{ color: '#888', fontSize: 13 }}>Added by: {salary.changedBy || 'N/A'}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {/* Extra Income Section */}
+            <section style={{ marginBottom: 32 }}>
+              <h3>All Extra Income</h3>
+              {extraIncome.length === 0 ? <p>No extra income records found.</p> : (
+                <ul style={{ paddingLeft: 0 }}>
+                  {extraIncome.map(income => (
+                    <li key={income._id || income.date+income.incomeType} style={{ marginBottom: 8, listStyle: 'none', borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                      <strong>{income.incomeType}</strong> | Amount: Rs.{income.amount} | Date: {income.date} {income.time} | Description: {income.description}<br/>
+                      <span style={{ color: '#888', fontSize: 13 }}>Added by: {income.changedBy || 'N/A'}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {/* GRN Expenses Section - removed */}
+          </>
+        )}
       </div>
     );
   }
 
   useEffect(() => {
     if (!isAdmin) return;
-    async function fetchAllLogs() {
+    async function fetchAllData() {
       setLoading(true);
       try {
-        const [productsRes, suppliersRes, jobsRes, paymentsRes, maintenanceRes] = await Promise.all([
+        const [productsRes, suppliersRes, jobsRes, paymentsRes, maintenanceRes, usersRes, salariesRes, extraIncomeRes] = await Promise.all([
           fetch(PRODUCT_API),
           fetch(SUPPLIER_API),
           fetch(JOB_API),
           fetch(PAYMENT_API, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
           fetch(MAINTENANCE_API),
+          fetch('https://raxwo-manage-backend-production.up.railway.app/api/auth/users'),
+          fetch('https://raxwo-manage-backend-production.up.railway.app/api/salaries'),
+          fetch('https://raxwo-manage-backend-production.up.railway.app/api/extra-income'),
         ]);
-        const [products, suppliers, jobs, payments, maintenance] = 
+        const [products, suppliers, jobs, payments, maintenance, users, salaries, extraIncome] = await Promise.all([
+          productsRes.json(),
+          suppliersRes.json(),
+          jobsRes.json(),
+          paymentsRes.json(),
+          maintenanceRes.json(),
+          usersRes.json(),
+          salariesRes.json(),
+          extraIncomeRes.json(),
+        ]);
+        setProducts(Array.isArray(products) ? products : products.products || []);
+        setSuppliers(Array.isArray(suppliers) ? suppliers : suppliers.suppliers || []);
+        setJobs(Array.isArray(jobs) ? jobs : jobs.jobs || []);
+        setPayments(Array.isArray(payments) ? payments : payments.payments || []);
+        setMaintenance(Array.isArray(maintenance) ? maintenance : maintenance.maintenance || []);
+        setUsers(Array.isArray(users) ? users : users.users || []);
+        setSalaries(Array.isArray(salaries) ? salaries : salaries.salaries || []);
+        setExtraIncome(Array.isArray(extraIncome) ? extraIncome : extraIncome.extraIncome || []);
+        // Remove grnExpenses fetch
+      } catch (err) {
+        setProducts([]);
+        setSuppliers([]);
+        setJobs([]);
+        setPayments([]);
+        setMaintenance([]);
+        setUsers([]);
+        setSalaries([]);
+        setExtraIncome([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAllData();
+  }, [isAdmin]);
+
+  return content;
+};
+
+export default LogHistoryPage; 

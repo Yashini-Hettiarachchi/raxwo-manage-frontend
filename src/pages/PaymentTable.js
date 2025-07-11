@@ -10,7 +10,7 @@ import HighchartsReact from "highcharts-react-official";
 import '../styles/PaymentTable.css';
 import deleteIcon from "../icon/delete.png";
 
-const API_URL = 'https://manage-backend-production-048c.up.railway.app/api/payments';
+const API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/payments';
 
 const PaymentTable = ({ darkMode }) => {
   const [payments, setPayments] = useState([]);

@@ -3,7 +3,7 @@ import axios from "axios";
 import '../styles/CashierAttendance.css';
 
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/attendance";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/attendance";
 
 const CashierAttendance = ({darkMode}) => {
   const [cashierId, setCashierId] = useState("");
@@ -16,7 +16,7 @@ const CashierAttendance = ({darkMode}) => {
     setCashierId(e.target.value);
     if (e.target.value.length >= 3) {
       try {
-        const res = await axios.get(`https://manage-backend-production-048c.up.railway.app/api/cashiers`);
+        const res = await axios.get(`https://raxwo-manage-backend-production.up.railway.app/api/cashiers`);
         const foundCashier = res.data.find((c) => c.id === e.target.value);
         if (foundCashier) {
           setCashierData(foundCashier);

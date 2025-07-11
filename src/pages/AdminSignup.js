@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/AdminSignup.css";
 import signupImage from "../images/blue3.png"; // Adjust the path to your image
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/auth/register";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/auth/register";
 
 const AdminSignup = ({darkMode}) => {
   const navigate = useNavigate();

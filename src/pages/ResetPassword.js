@@ -22,7 +22,7 @@ const ResetPassword = () => {
     }
 
     try {
-      const res = await axios.post(`https://manage-backend-production-048c.up.railway.app/api/auth/reset-password/${token}`, { password });
+      const res = await axios.post(`https://raxwo-manage-backend-production.up.railway.app/api/auth/reset-password/${token}`, { password });
       setMessage(res.data.msg || 'Password reset successfully!');
       setTimeout(() => {
         navigate('/cashier/login');

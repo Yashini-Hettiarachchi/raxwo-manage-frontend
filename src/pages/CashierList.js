@@ -12,7 +12,7 @@ import cashiericon from '../icon/people.png';
 import CashierAdd from "./CashierAdd";
 import CashierEdit from "./CashierEdit";
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/cashiers";
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/cashiers";
 
 const CashierList = ({ darkMode }) => {
   const [cashiers, setCashiers] = useState([]);

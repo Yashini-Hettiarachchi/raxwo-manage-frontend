@@ -12,11 +12,11 @@ import repairingIcon from "../icon/00.png";
 import { FaChartLine, FaArrowUp, FaArrowDown, FaCheckCircle, FaClock, FaTools } from "react-icons/fa";
 import "../styles/Dashboard.css";
 
-const API_URL = "https://manage-backend-production-048c.up.railway.app/api/dashboard";
-const PRODUCTS_REPAIR_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/productsRepair';
-const EXTRA_INCOME_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/extra-income';
-const SALARIES_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/salaries';
-const MAINTENANCE_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/maintenance';
+const API_URL = "https://raxwo-manage-backend-production.up.railway.app/api/dashboard";
+const PRODUCTS_REPAIR_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/productsRepair';
+const EXTRA_INCOME_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/extra-income';
+const SALARIES_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/salaries';
+const MAINTENANCE_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/maintenance';
 
 // Sample data for demonstration
 const sampleData = {
@@ -40,7 +40,6 @@ const Dashboard = ({ darkMode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [lastUpdated, setLastUpdated] = useState("");
-  const [isDemoMode, setIsDemoMode] = useState(false);
   const [totalIncome, setTotalIncome] = useState(0);
   const [repairsData, setRepairsData] = useState([]);
   const [extraIncomeData, setExtraIncomeData] = useState([]);
@@ -73,27 +72,7 @@ const Dashboard = ({ darkMode }) => {
     try {
       const response = await fetch(API_URL);
       if (!response.ok) {
-        // If API is not available, use sample data
-        setIsDemoMode(true);
-        setDailyData({ 
-          income: sampleData.dailyIncome, 
-          cost: sampleData.dailyCost, 
-          profit: sampleData.dailyProfit 
-        });
-        setJobData({
-          completed: sampleData.completedJobs,
-          pending: sampleData.pendingJobs,
-          inProgress: sampleData.inProgressJobs
-        });
-        setSixMonthData({
-          months: sampleData.sixMonthMonths,
-          income: sampleData.sixMonthIncome,
-          cost: sampleData.sixMonthCost,
-          profit: sampleData.sixMonthProfit,
-        });
-        setLastUpdated(new Date().toLocaleTimeString());
-        console.log("API not available, using demo data");
-        return;
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
@@ -101,7 +80,6 @@ const Dashboard = ({ darkMode }) => {
       
       // Ensure we have valid data from backend
       if (data && (data.dailyIncome !== undefined || data.sixMonthIncome !== undefined)) {
-        setIsDemoMode(false);
         setDailyData({ 
           income: data.dailyIncome || 0, 
           cost: data.dailyCost || 0, 
@@ -120,48 +98,12 @@ const Dashboard = ({ darkMode }) => {
         });
         setLastUpdated(new Date().toLocaleTimeString());
       } else {
-        // If backend data is incomplete, use sample data
-        setIsDemoMode(true);
-        setDailyData({ 
-          income: sampleData.dailyIncome, 
-          cost: sampleData.dailyCost, 
-          profit: sampleData.dailyProfit 
-        });
-        setJobData({
-          completed: sampleData.completedJobs,
-          pending: sampleData.pendingJobs,
-          inProgress: sampleData.inProgressJobs
-        });
-        setSixMonthData({
-          months: sampleData.sixMonthMonths,
-          income: sampleData.sixMonthIncome,
-          cost: sampleData.sixMonthCost,
-          profit: sampleData.sixMonthProfit,
-        });
-        setLastUpdated(new Date().toLocaleTimeString());
-        console.log("Backend data incomplete, using demo data");
+        // If backend data is incomplete, throw an error
+        throw new Error("Backend data incomplete or invalid.");
       }
     } catch (err) {
       console.error("Error fetching data:", err);
-      // Use sample data if API fails
-      setIsDemoMode(true);
-      setDailyData({ 
-        income: sampleData.dailyIncome, 
-        cost: sampleData.dailyCost, 
-        profit: sampleData.dailyProfit 
-      });
-      setJobData({
-        completed: sampleData.completedJobs,
-        pending: sampleData.pendingJobs,
-        inProgress: sampleData.inProgressJobs
-      });
-      setSixMonthData({
-        months: sampleData.sixMonthMonths,
-        income: sampleData.sixMonthIncome,
-        cost: sampleData.sixMonthCost,
-        profit: sampleData.sixMonthProfit,
-      });
-      setLastUpdated(new Date().toLocaleTimeString());
+      setError("Failed to load dashboard data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -589,11 +531,6 @@ const Dashboard = ({ darkMode }) => {
             <div className="header-left">
               <h1 className="dashboard-title">Welcome Back, {getUserName()}! 👋</h1>
               <p className="dashboard-subtitle">Here's Your Business Overview for Today</p>
-              {isDemoMode && (
-                <div className="demo-notice">
-                  <span>📊 Demo Mode - Showing sample data</span>
-                </div>
-              )}
             </div>
             <div className="header-right">
               {lastUpdated && (

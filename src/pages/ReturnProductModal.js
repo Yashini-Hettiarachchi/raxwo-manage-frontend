@@ -21,7 +21,7 @@ const ReturnProductModal = ({ product, closeModal, darkMode}) => {
     }
 
     try {
-      const response = await fetch(`https://manage-backend-production-048c.up.railway.app/api/products/return/${product._id}`, {
+      const response = await fetch(`https://raxwo-manage-backend-production.up.railway.app/api/products/return/${product._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ returnQuantity, returnType }),

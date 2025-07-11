@@ -5,8 +5,8 @@ import editicon from '../icon/edit.png';
 import deleteicon from '../icon/delete.png';
 import saveicon from '../icon/sucess.png';
 
-const API_URL = 'https://manage-backend-production-048c.up.railway.app/api/suppliers';
-const PRODUCT_API_URL = 'https://manage-backend-production-048c.up.railway.app/api/products';
+const API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/suppliers';
+const PRODUCT_API_URL = 'https://raxwo-manage-backend-production.up.railway.app/api/products';
 
 const CartDetailsTable = ({ supplierId, darkMode, refreshSuppliers }) => {
   const [items, setItems] = useState([]);

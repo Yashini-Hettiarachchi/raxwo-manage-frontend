@@ -36,7 +36,7 @@ const UserSignup = ({ darkMode }) => {
     }
 
     try {
-      const response = await axios.post('https://manage-backend-production-048c.up.railway.app/api/auth/register', {
+      const response = await axios.post('https://raxwo-manage-backend-production.up.railway.app/api/auth/register', {
         username: formData.username,
         email: formData.email,
         phone: formData.phone,
